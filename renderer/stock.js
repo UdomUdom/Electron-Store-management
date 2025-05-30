@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to load products and render them in the table
     function loadProducts(searchTerm = '') {
-        let query = 'SELECT id, name, sell_price FROM products';
+        let query = 'SELECT id, name, quantity, sell_price FROM products'; // Added quantity
         const params = [];
         if (searchTerm) {
             query += ' WHERE name LIKE ?';
@@ -28,12 +28,16 @@ document.addEventListener('DOMContentLoaded', () => {
         db.all(query, params, (err, rows) => {
             if (err) {
                 console.error('Error loading products:', err.message);
+                // It's possible the column 'quantity' doesn't exist yet,
+                // so we might want to handle that error specifically, but for now, just log.
+                productTableBody.innerHTML = '<tr><td colspan="4">Error loading products. Quantity column might be missing.</td></tr>';
                 return;
             }
             productTableBody.innerHTML = ''; // Clear existing rows
             rows.forEach(product => {
                 const row = productTableBody.insertRow();
                 row.insertCell().textContent = product.name;
+                row.insertCell().textContent = product.quantity !== undefined ? product.quantity : 'N/A'; // Display quantity
                 row.insertCell().textContent = product.sell_price;
 
                 const actionsCell = row.insertCell();
@@ -67,18 +71,36 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault(); // Prevent default form submission
 
         const name = productNameInput.value.trim();
-        const price = priceInput.value.trim();
-        // const quantity = quantityInput.value.trim(); // Quantity is ignored for DB
+        const quantityValue = quantityInput.value.trim(); // Get quantity value
+        const priceValue = priceInput.value.trim();
 
-        if (!name || !price) {
-            alert('Product name and price cannot be empty.');
+        if (!name || !quantityValue || !priceValue) {
+            alert('Product name, quantity, and price cannot be empty.');
             return;
         }
 
-        const query = 'INSERT INTO products (name, sell_price) VALUES (?, ?)';
-        db.run(query, [name, parseFloat(price)], function(err) {
+        const quantity = parseInt(quantityValue, 10);
+        const price = parseFloat(priceValue);
+
+        if (isNaN(quantity) || quantity < 0) {
+            alert('Please enter a valid quantity (non-negative number).');
+            return;
+        }
+        if (isNaN(price) || price < 0) {
+            alert('Please enter a valid price (non-negative number).');
+            return;
+        }
+
+        const query = 'INSERT INTO products (name, quantity, sell_price) VALUES (?, ?, ?)'; // Added quantity
+        db.run(query, [name, quantity, price], function(err) {
             if (err) {
                 console.error('Error adding product:', err.message);
+                // Alert a more specific message if it's a known schema error
+                if (err.message.includes("has no column named quantity")) {
+                    alert('Failed to add product. The database needs to be updated to support quantity. Please contact support.');
+                } else {
+                    alert('Failed to add product.');
+                }
                 alert('Failed to add product.');
                 return;
             }
