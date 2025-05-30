@@ -3,17 +3,39 @@ const path = require("path");
 const fs = require("fs");
 const { app } = require("electron");
 
-const dbFolder = app.getPath("userData");
-const dbPath = path.join(dbFolder, "app.db");
+// Define the custom application data folder name
+const customAppFolder = "AccountingApp";
 
-console.log("📂 Database path:", dbPath);
+// Construct the path to the directory C:\Users\<user>\AppData\Roaming\AccountingApp
+const dbDirectory = path.join(app.getPath("appData"), customAppFolder);
 
-if (!fs.existsSync(dbPath)) {
-  fs.writeFileSync(dbPath, "");
+// Ensure this directory exists
+if (!fs.existsSync(dbDirectory)) {
+  try {
+    fs.mkdirSync(dbDirectory, { recursive: true });
+    console.log(`✅ Created database directory: ${dbDirectory}`);
+  } catch (mkdirErr) { // Changed variable name for clarity
+    console.error(`❌ Error creating database directory ${dbDirectory}:`, mkdirErr.message);
+    // Depending on the desired behavior, might throw mkdirErr or exit.
+    // For now, we let sqlite3 attempt to open, which will likely fail if directory is not there.
+  }
 }
 
+// Define the full database file path
+const dbPath = path.join(dbDirectory, "app.db");
+
+console.log("📂 New database path:", dbPath); // Updated log message
+
+// The line `if (!fs.existsSync(dbPath)) { fs.writeFileSync(dbPath, ""); }`
+// is removed as sqlite3 handles file creation.
+
 const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) return console.error("❌ เปิด DB ไม่ได้:", err.message);
+  if (err) {
+    console.error("❌ Error opening DB at new path:", err.message);
+    // Potentially exit or throw error if DB connection is critical
+    return;
+  }
+  console.log("✅ Successfully connected to DB at new path.");
 });
 
 db.serialize(() => {

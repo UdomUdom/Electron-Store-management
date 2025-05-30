@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Modal Handling
     addProductButton.addEventListener('click', () => {
-        addProductModal.style.display = 'block';
+        addProductModal.style.display = 'flex'; // Changed to 'flex' to align with CSS for centering
     });
 
     cancelButton.addEventListener('click', () => {
