@@ -98,6 +98,62 @@
       </div>
     </div>
 
+    <!-- <div id="expenseModalStock" class="modal">
+      <div class="modal-content">
+        <span id="closeExpenseModalStock" class="close">&times;</span>
+        <h2>เพิ่มรายการค่าใช้จ่าย</h2>
+
+        <form id="expenseForm">
+          <div class="form-group">
+            <label for="expenseItem">ชื่อรายการ</label>
+            <select
+              id="expenseItem"
+              class="form-group select"
+              required
+            ></select>
+          </div>
+          <div class="form-group">
+            <label for="expenseAmount">จำนวนเงิน</label>
+            <input
+              type="number"
+              id="expenseAmount"
+              min="1"
+              value="1"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="expenseDate">วันที่</label>
+            <input type="date" id="expenseDate" required />
+          </div>
+          <button type="submit" class="create-btn">บันทึก</button>
+        </form>
+      </div>
+    </div> -->
+
+<div id="expenseModalStock" class="modal">
+  <div class="modal-content">
+    <span id="closeExpenseModalStock" class="close">&times;</span>
+    <h2>เพิ่มรายการค่าใช้จ่าย</h2>
+
+    <form id="expenseFormStock"> <!-- changed ID -->
+      <div class="form-group">
+        <label for="expenseItemStock">ชื่อรายการ</label>
+        <select id="expenseItemStock" class="form-group select" required></select> <!-- changed ID -->
+      </div>
+      <div class="form-group">
+        <label for="expenseAmountStock">จำนวนเงิน</label>
+        <input type="number" id="expenseAmountStock" min="1" value="1" required />
+      </div>
+      <div class="form-group">
+        <label for="expenseDateStock">วันที่</label>
+        <input type="date" id="expenseDateStock" required />
+      </div>
+      <button type="submit" class="create-btn">บันทึก</button>
+    </form>
+  </div>
+</div>
+
     <script src="../renderer/expense.js"></script>
   </body>
 </html>

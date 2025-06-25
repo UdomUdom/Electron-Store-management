@@ -13,9 +13,16 @@ const addExpenseBtn = document.getElementById('addExpenseBtn');
 const addExpenseBtnStock = document.getElementById('addExpenseBtnStock');
 const expenseModal = document.getElementById('expenseModal');
 const closeExpenseModal = document.getElementById('closeExpenseModal');
+const expenseModalStock = document.getElementById('expenseModalStock');
+const closeExpenseModalStock = document.getElementById('closeExpenseModalStock');
 const expenseForm = document.getElementById('expenseForm');
 const expenseDateInput = document.getElementById('expenseDate');
 const expenseItemSelect = document.getElementById('expenseItem');
+
+const expenseItemStockSelect = document.getElementById('expenseItemStock');
+const expenseAmountStockInput = document.getElementById('expenseAmountStock');
+const expenseDateStockInput = document.getElementById('expenseDateStock');
+const expenseFormStock = document.getElementById('expenseFormStock');
 
 async function populateExpenseItemDropdown() {
   try {
@@ -39,15 +46,48 @@ async function populateExpenseItemDropdown() {
   }
 }
 
-addExpenseBtn.addEventListener('click', () => {
-  const today = new Date().toISOString().substr(0, 10);
-  expenseDateInput.value = today;
-  populateExpenseItemDropdown(); // Populate dropdown when modal opens
-  expenseModal.style.display = 'block';
-});
+async function populateExpenseItemStockDropdown() {
+  try {
+    const products = await window.electronAPI.getProducts();
+    expenseItemStockSelect.innerHTML = '';
+
+    const placeholderOption = document.createElement('option');
+    placeholderOption.value = '';
+    placeholderOption.textContent = 'เลือกสินค้า';
+    placeholderOption.disabled = true;
+    placeholderOption.selected = true;
+    expenseItemStockSelect.appendChild(placeholderOption);
+
+    products.forEach(product => {
+      const option = document.createElement('option');
+      option.value = product.name;
+      option.textContent = product.name;
+      expenseItemStockSelect.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Error populating stock expense items:', error);
+  }
+}
 
 closeExpenseModal.addEventListener('click', () => {
   expenseModal.style.display = 'none';
+});
+
+addExpenseBtn.addEventListener('click', () => {
+  const today = new Date().toISOString().substr(0, 10);
+  expenseDateInput.value = today;
+  populateExpenseItemDropdown(); // For first modal
+  expenseModal.style.display = 'block';
+});
+
+addExpenseBtnStock.addEventListener('click', () => {
+  const today = new Date().toISOString().substr(0, 10);
+  expenseDateStockInput.value = today; // Update date input in second modal
+  populateExpenseItemStockDropdown(); // Populate dropdown for second modal
+  expenseModalStock.style.display = 'block';
+});
+closeExpenseModalStock.addEventListener('click', () => {
+  expenseModalStock.style.display = 'none';
 });
 
 window.addEventListener('click', (event) => {
@@ -60,7 +100,7 @@ window.addEventListener('click', (event) => {
 expenseForm.addEventListener('submit', (event) => {
   event.preventDefault();
 
-  const item = expenseItemSelect.value; // Get value from select
+  const item = document.getElementById('expenseItem').value;
   const amount = parseFloat(document.getElementById('expenseAmount').value);
   const date = document.getElementById('expenseDate').value;
 
@@ -68,6 +108,7 @@ expenseForm.addEventListener('submit', (event) => {
     alert('กรุณากรอกข้อมูลให้ครบถ้วน และเลือกรายการ');
     return;
   }
+
   try {
     window.electronAPI.addExpense({ item, amount, date });
     alert('บันทึกค่าใช้จ่ายเสร็จสิ้น!');
@@ -77,11 +118,35 @@ expenseForm.addEventListener('submit', (event) => {
     alert('บันทึกไม่สำเร็จ');
   }
 
-  console.log('บันทึกข้อมูล:', { item, amount, date });
-
   expenseForm.reset();
   expenseModal.style.display = 'none';
 });
+
+expenseFormStock.addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  const item = expenseItemStockSelect.value;
+  const amount = parseFloat(expenseAmountStockInput.value);
+  const date = expenseDateStockInput.value;
+
+  if (!item || isNaN(amount) || amount <= 0 || !date) {
+    alert('กรุณากรอกข้อมูลให้ครบถ้วน และเลือกรายการ');
+    return;
+  }
+
+  try {
+    window.electronAPI.addExpense({ item, amount, date });
+    alert('บันทึกค่าใช้จ่ายเสร็จสิ้น!');
+    loadExpenses();
+  } catch (err) {
+    console.error('เกิดข้อผิดพลาด:', err);
+    alert('บันทึกไม่สำเร็จ');
+  }
+
+  expenseFormStock.reset();
+  expenseModalStock.style.display = 'none';
+});
+
 function displayExpenses(expensesToDisplay) {
   const tbody = document.querySelector('#productsTable tbody');
   tbody.innerHTML = '';
